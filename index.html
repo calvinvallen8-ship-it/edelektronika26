@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelas 1 ED Elektronika</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #6EC3F5;
+    --sky-light: #D8F0FE;
+    --pcb-deep: #F2FAFF;
+    --pcb: #FFFFFF;
+    --pcb-raised: #E4F3FD;
+    --copper: #00878F;
+    --copper-bright: #00A8B5;
+    --silk: #0E3A53;
+    --silk-dim: #5B7C93;
+    --led-amber: #FF9E2C;
+    --led-red: #E5484D;
+    --signal: #22B573;
+    --line: rgba(0, 135, 143, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: linear-gradient(180deg, #5FB8F2 0%, #8FD2FA 40%, #C9E9FD 75%, #E6F6FF 100%);
+    background-attachment: fixed;
+    color: var(--silk);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--copper); color: #fff; }
+
+  /* ============ AWAN ============ */
+  .cloud {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    background: #fff;
+    border-radius: 60px;
+    opacity: 0.85;
+    filter: blur(1px);
+    animation: drift linear infinite;
+  }
+
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+  }
+
+  .cloud::before { width: 55%; height: 160%; top: -75%; left: 14%; }
+  .cloud::after { width: 38%; height: 110%; top: -45%; right: 12%; }
+
+  .cloud.c1 { width: 130px; height: 42px; top: 12%; animation-duration: 75s; }
+  .cloud.c2 { width: 90px; height: 30px; top: 32%; animation-duration: 105s; animation-delay: -40s; opacity: 0.7; }
+  .cloud.c3 { width: 160px; height: 50px; top: 58%; animation-duration: 90s; animation-delay: -70s; opacity: 0.6; }
+
+  @keyframes drift {
+    from { transform: translateX(-220px); }
+    to { transform: translateX(calc(100vw + 220px)); }
+  }
+
+  /* ============ LOCK SCREEN ============ */
+  #lock-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .lock-half {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50.5%;
+    background: linear-gradient(145deg, #00979D, #006B6E);
+    transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+
+  .lock-half.left {
+    left: 0;
+    border-right: 2px solid var(--copper);
+  }
+
+  .lock-half.right {
+    right: 0;
+    border-left: 2px solid var(--copper);
+  }
+
+  #lock-screen.open .lock-half.left { transform: translateX(-101%); }
+  #lock-screen.open .lock-half.right { transform: translateX(101%); }
+
+  .lock-panel {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+
+  #lock-screen.open .lock-panel {
+    opacity: 0;
+    transform: scale(0.92);
+    pointer-events: none;
+  }
+
+  .lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--silk-dim);
+    margin-bottom: 28px;
+    background: var(--pcb-deep);
+  }
+
+  .led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c4d4de;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  .led.on-amber {
+    background: var(--led-amber);
+    box-shadow: 0 0 8px var(--led-amber), 0 0 16px rgba(255, 182, 39, 0.5);
+  }
+
+  .led.on-green {
+    background: var(--signal);
+    box-shadow: 0 0 8px var(--signal), 0 0 16px rgba(74, 222, 128, 0.5);
+  }
+
+  .led.on-red {
+    background: var(--led-red);
+    box-shadow: 0 0 8px var(--led-red), 0 0 16px rgba(229, 72, 77, 0.5);
+  }
+
+  .led.blink { animation: blink 1.4s steps(2, start) infinite; }
+
+  @keyframes blink { 50% { opacity: 0.25; } }
+
+  .lock-panel h1 {
+    font-size: clamp(34px, 6vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .lock-panel .sub {
+    color: var(--silk-dim);
+    font-size: 15px;
+    margin-bottom: 36px;
+  }
+
+  .pin-display {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .pin-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--copper);
+    background: transparent;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+
+  .pin-dot.filled {
+    background: var(--led-amber);
+    border-color: var(--led-amber);
+    box-shadow: 0 0 12px rgba(255, 182, 39, 0.7);
+    transform: scale(1.15);
+  }
+
+  .pin-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--silk-dim);
+    height: 18px;
+    margin-bottom: 26px;
+  }
+
+  .pin-status.error { color: var(--led-red); }
+  .pin-status.ok { color: var(--signal); }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 72px);
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .key {
+    width: 72px;
+    height: 60px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--pcb-deep);
+    color: var(--silk);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.08s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+
+  .key:hover {
+    border-color: var(--copper);
+    background: var(--pcb-raised);
+  }
+
+  .key:active, .key.pressed {
+    transform: scale(0.93);
+    background: var(--copper);
+    color: var(--pcb-deep);
+    box-shadow: 0 0 18px rgba(217, 142, 74, 0.5);
+  }
+
+  .key.fn { font-size: 14px; color: var(--silk-dim); }
+
+  .shake { animation: shake 0.45s; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-7px); }
+    80% { transform: translateX(7px); }
+  }
+
+  /* ============ APP LAYOUT ============ */
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    opacity: 0;
+    transition: opacity 0.6s 0.3s;
+  }
+
+  #app.visible { opacity: 1; }
+
+  /* ---- Topbar ---- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-chip {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--copper);
+    color: var(--pcb-deep);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .brand-name { font-weight: 700; font-size: 17px; line-height: 1.15; }
+  .brand-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--silk-dim);
+  }
+
+  .clock-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: right;
+  }
+
+  .clock-time { font-size: 22px; font-weight: 600; color: var(--led-amber); }
+  .clock-date { font-size: 11px; color: var(--silk-dim); }
+
+  .lock-btn {
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--silk-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .lock-btn:hover { color: var(--led-red); border-color: var(--led-red); }
+
+  /* ---- Nav tabs ---- */
+  .nav {
+    display: flex;
+    gap: 6px;
+    padding: 16px 0 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar { display: none; }
+
+  .nav-tab {
+    border: 1px solid transparent;
+    background: none;
+    color: var(--silk-dim);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .nav-tab:hover { color: var(--silk); }
+
+  .nav-tab.active {
+    color: var(--led-amber);
+    background: var(--pcb);
+    border-color: var(--line);
+    border-bottom-color: var(--pcb);
+  }
+
+  /* ---- Sections ---- */
+  .section {
+    display: none;
+    background: var(--pcb);
+    border: 1px solid var(--line);
+    border-radius: 0 12px 12px 12px;
+    padding: 32px;
+    animation: sectionIn 0.35s ease;
+  }
+
+  .section.active { display: block; }
+
+  @keyframes sectionIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .section-desc {
+    color: var(--silk-dim);
+    font-size: 14px;
+    margin-bottom: 26px;
+    max-width: 60ch;
+  }
+
+  /* ---- Hero: Arduino Board ---- */
+  .hero {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .arduino-board {
+    position: relative;
+    background: linear-gradient(145deg, #00979D 0%, #008184 60%, #006B6E 100%);
+    border-radius: 22px;
+    padding: 40px 90px;
+    box-shadow: 0 24px 60px rgba(0, 90, 120, 0.35), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -3px 0 rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+
+  /* tekstur jalur sirkuit samar di board */
+  .arduino-board::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 46px, rgba(255,255,255,0.045) 46px 47px),
+      repeating-linear-gradient(0deg, transparent 0 46px, rgba(255,255,255,0.045) 46px 47px);
+    pointer-events: none;
+  }
+
+  .board-label {
+    font-family: 'IBM Plex Mono', monospace;
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-align: center;
+  }
+
+  .board-title {
+    font-size: clamp(26px, 4.5vw, 42px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+
+  .board-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .chip {
+    width: 90px;
+    height: 34px;
+    background: #1a2b33;
+    border-radius: 5px;
+    margin: 16px auto 4px;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .chip::before, .chip::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 8px;
+    background: repeating-linear-gradient(0deg, #c8d6dd 0 4px, transparent 4px 8px);
+  }
+
+  .chip::before { left: -10px; }
+  .chip::after { right: -10px; }
+
+  .board-led {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--led-amber);
+    box-shadow: 0 0 10px var(--led-amber), 0 0 22px rgba(255,158,44,0.6);
+    top: 18px;
+    right: 26px;
+    animation: blink 1.6s steps(2, start) infinite;
+  }
+
+  .usb-port {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 52px;
+    background: linear-gradient(145deg, #d7e3ea, #aebfca);
+    border-radius: 6px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);
+  }
+
+  .usb-port::after {
+    content: '';
+    position: absolute;
+    inset: 8px 6px;
+    background: #23333c;
+    border-radius: 3px;
+  }
+
+  .power-port {
+    position: absolute;
+    left: 58px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 34px;
+    background: #1a2b33;
+    border-radius: 5px;
+  }
+
+  .pin-col {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+  }
+
+  .pin-col.top { margin-bottom: 18px; }
+  .pin-col.bottom { margin-top: 18px; }
+
+  .arduino-pin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    transition: transform 0.15s;
+    padding: 4px 6px;
+    min-width: 74px;
+  }
+
+  .arduino-pin:hover { transform: translateY(-3px); }
+
+  .arduino-pin .pin-hole {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #12242c;
+    border: 2px solid rgba(255,255,255,0.35);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .arduino-pin .pin-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.95);
+    letter-spacing: 0.04em;
+  }
+
+  .arduino-pin .pin-name {
+    font-size: 9px;
+    color: rgba(255,255,255,0.6);
+    margin-top: -3px;
+  }
+
+  .arduino-pin:hover .pin-hole,
+  .arduino-pin.active .pin-hole {
+    background: var(--led-amber);
+    border-color: #fff;
+    box-shadow: 0 0 14px rgba(255,158,44,0.8);
+  }
+
+  .board-hint {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.85);
+    margin-top: 18px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ---- Jadwal ---- */
+  .day-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+
+  .day-tab {
+    border: 1px solid var(--line);
+    background: var(--pcb-deep);
+    color: var(--silk-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .day-tab:hover { color: var(--silk); border-color: var(--copper); }
+
+  .day-tab.active {
+    background: var(--copper);
+    border-color: var(--copper);
+    color: var(--pcb-deep);
+    font-weight: 600;
+  }
+
+  .day-tab.today-mark { position: relative; }
+  .day-tab.today-mark::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--led-amber);
+    box-shadow: 0 0 6px var(--led-amber);
+  }
+
+  .jadwal-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .jadwal-row {
+    display: grid;
+    grid-template-columns: 130px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--pcb-deep);
+  }
+
+  .jadwal-row .waktu {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--copper-bright);
+  }
+
+  .jadwal-row .mapel { font-weight: 600; font-size: 15px; }
+  .jadwal-row .guru { font-size: 13px; color: var(--silk-dim); }
+
+  .jadwal-row.istirahat {
+    background: transparent;
+    border-style: dashed;
+  }
+
+  .jadwal-row.istirahat .mapel {
+    color: var(--silk-dim);
+    font-weight: 500;
+    font-size: 13px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ---- Galeri ---- */
+  .galeri-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .upload-btn {
+    background: var(--copper);
+    color: var(--pcb-deep);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px 20px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .upload-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(217, 142, 74, 0.35); }
+
+  .galeri-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .foto-card {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: zoom-in;
+    background: var(--pcb-deep);
+    aspect-ratio: 4 / 3;
+    transition: transform 0.25s, border-color 0.25s;
+  }
+
+  .foto-card:hover { transform: translateY(-4px); border-color: var(--copper); }
+  .foto-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .foto-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(217,142,74,0.18), transparent 55%),
+      repeating-linear-gradient(0deg, transparent 0 19px, rgba(217,142,74,0.07) 19px 20px),
+      repeating-linear-gradient(90deg, transparent 0 19px, rgba(217,142,74,0.07) 19px 20px),
+      var(--pcb-deep);
+  }
+
+  .foto-placeholder .glyph { font-size: 34px; }
+
+  .foto-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    background: linear-gradient(transparent, rgba(7, 33, 26, 0.95));
+    color: var(--silk);
+  }
+
+  .foto-del {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(7, 33, 26, 0.85);
+    color: var(--led-red);
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+  }
+
+  .foto-card:hover .foto-del { opacity: 1; }
+
+  /* lightbox */
+  #lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(4, 15, 11, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    cursor: zoom-out;
+  }
+
+  #lightbox.show { display: flex; animation: sectionIn 0.25s ease; }
+  #lightbox img { max-width: 92vw; max-height: 82vh; border-radius: 10px; border: 1px solid var(--line); }
+
+  #lightbox .lb-cap {
+    position: absolute;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--silk-dim);
+  }
+
+  /* ---- Tugas ---- */
+  .tugas-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .tugas-form input {
+    background: var(--pcb-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--silk);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .tugas-form input:focus { border-color: var(--copper); }
+  .tugas-form input[type="date"] { font-family: 'IBM Plex Mono', monospace; color-scheme: dark; }
+
+  .tugas-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--pcb-deep);
+    margin-bottom: 8px;
+  }
+
+  .tugas-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--copper);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    color: var(--pcb-deep);
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+
+  .tugas-check.done { background: var(--signal); border-color: var(--signal); }
+
+  .tugas-body { flex: 1; }
+  .tugas-body .t-mapel { font-weight: 600; font-size: 15px; }
+  .tugas-body .t-deadline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--copper-bright);
+    margin-top: 2px;
+  }
+
+  .tugas-item.done .t-mapel { text-decoration: line-through; color: var(--silk-dim); }
+
+  .tugas-del {
+    background: none;
+    border: none;
+    color: var(--silk-dim);
+    cursor: pointer;
+    font-size: 16px;
+    transition: color 0.2s;
+  }
+
+  .tugas-del:hover { color: var(--led-red); }
+
+  .empty-note {
+    text-align: center;
+    color: var(--silk-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 30px 0;
+  }
+
+  /* ---- Pengumuman ---- */
+  .info-item {
+    border-left: 3px solid var(--copper);
+    background: var(--pcb-deep);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+
+  .info-item .info-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--copper-bright);
+    margin-bottom: 6px;
+  }
+
+  .info-item h3 { font-size: 16px; margin-bottom: 6px; }
+  .info-item p { font-size: 14px; color: var(--silk-dim); line-height: 1.6; }
+
+  .info-item.penting { border-left-color: var(--led-red); }
+  .info-item.penting .info-date { color: var(--led-red); }
+
+  /* ---- Piket ---- */
+  .piket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .piket-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--pcb-deep);
+    padding: 18px;
+    position: relative;
+  }
+
+  .piket-card .p-day {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--copper-bright);
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .piket-card ul { list-style: none; }
+
+  .piket-card li {
+    font-size: 14px;
+    padding: 4px 0;
+    color: var(--silk);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .piket-card li::before {
+    content: '·';
+    color: var(--copper);
+    margin-right: 2px;
+    font-weight: 700;
+  }
+
+  .piket-card li span { flex: 1; }
+
+  .mini-del {
+    background: none;
+    border: none;
+    color: var(--silk-dim);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    opacity: 0.5;
+    transition: color 0.2s, opacity 0.2s;
+  }
+
+  .mini-del:hover { color: var(--led-red); opacity: 1; }
+
+  .piket-card.today {
+    border-color: var(--led-amber);
+    box-shadow: 0 0 18px rgba(255, 182, 39, 0.12);
+  }
+
+  .piket-card.today .p-day {
+    color: var(--led-amber);
+  }
+
+  .piket-card.today::after {
+    content: 'HARI INI';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--pcb-deep);
+    background: var(--led-amber);
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-weight: 600;
+  }
+
+  /* ---- Absen ---- */
+  .absen-item {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--pcb-deep);
+    margin-bottom: 8px;
+  }
+
+  .absen-no {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--copper);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+  }
+
+  .absen-item .a-nama { font-size: 15px; font-weight: 600; }
+
+  /* ---- Kas ---- */
+  .kas-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .kas-stat {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--pcb-deep);
+    padding: 18px;
+    text-align: center;
+  }
+
+  .kas-stat .k-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--silk-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .kas-stat .k-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .kas-stat.saldo { border-color: var(--copper); }
+  .kas-stat.saldo .k-value { color: var(--led-amber); }
+  .kas-stat.masuk .k-value { color: var(--signal); }
+  .kas-stat.keluar .k-value { color: var(--led-red); }
+
+  .kas-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--pcb-deep);
+    margin-bottom: 8px;
+  }
+
+  .kas-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    letter-spacing: 0.06em;
+  }
+
+  .kas-badge.in { background: rgba(74, 222, 128, 0.14); color: var(--signal); }
+  .kas-badge.out { background: rgba(229, 72, 77, 0.14); color: var(--led-red); }
+
+  .kas-item .k-ket { font-size: 14px; }
+  .kas-item .k-tgl {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--silk-dim);
+    margin-top: 3px;
+  }
+
+  .kas-item .k-nominal {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .kas-item .k-nominal.in { color: var(--signal); }
+  .kas-item .k-nominal.out { color: var(--led-red); }
+
+  /* ---- Form input generik ---- */
+  .inline-form {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding: 18px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    background: rgba(217, 142, 74, 0.04);
+  }
+
+  .inline-form .form-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .inline-form input, .inline-form select, .inline-form textarea {
+    flex: 1;
+    min-width: 140px;
+    background: var(--pcb-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--silk);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .inline-form textarea {
+    resize: vertical;
+    min-height: 60px;
+    width: 100%;
+  }
+
+  .inline-form input:focus, .inline-form select:focus, .inline-form textarea:focus {
+    border-color: var(--copper);
+  }
+
+  .inline-form select {
+    flex: 0 1 auto;
+    cursor: pointer;
+  }
+
+  .inline-form input[type="checkbox"] {
+    flex: 0 0 auto;
+    min-width: auto;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--copper);
+    align-self: center;
+    cursor: pointer;
+  }
+
+  .inline-form label.check-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--silk-dim);
+    cursor: pointer;
+  }
+
+  .form-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--copper-bright);
+    letter-spacing: 0.1em;
+  }
+
+  /* ---- Mapel ---- */
+  .mapel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .mapel-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--pcb-deep);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+  }
+
+  .mapel-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: var(--pcb-raised);
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .mapel-card.produktif .mapel-icon {
+    background: rgba(217, 142, 74, 0.18);
+    border: 1px solid var(--line);
+  }
+
+  .mapel-info { flex: 1; }
+  .mapel-info .m-name { font-size: 15px; font-weight: 600; }
+  .mapel-info .m-guru {
+    font-size: 13px;
+    color: var(--silk-dim);
+    margin-top: 3px;
+  }
+
+  .mapel-info .m-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--copper-bright);
+    margin-top: 5px;
+  }
+
+  .card-del {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: none;
+    background: none;
+    color: var(--silk-dim);
+    font-size: 15px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+  }
+
+  .mapel-card:hover .card-del,
+  .info-item:hover .card-del,
+  .pengurus-card:hover .card-del { opacity: 1; }
+
+  .card-del:hover { color: var(--led-red); }
+
+  /* ---- Struktur ---- */
+  .wali-box {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border: 1px solid var(--copper);
+    border-radius: 12px;
+    padding: 22px;
+    background: var(--pcb-deep);
+    margin-bottom: 22px;
+  }
+
+  .avatar {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: var(--copper);
+    color: var(--pcb-deep);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .wali-box .role {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--copper-bright);
+    margin-bottom: 4px;
+  }
+
+  .wali-box .name { font-size: 19px; font-weight: 700; }
+
+  .pengurus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .pengurus-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--pcb-deep);
+  }
+
+  .pengurus-card .avatar { width: 44px; height: 44px; font-size: 16px; background: var(--pcb-raised); color: var(--copper-bright); }
+  .pengurus-card .role { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--silk-dim); }
+  .pengurus-card .name { font-size: 15px; font-weight: 600; }
+
+  /* ---- Footer ---- */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--silk-dim);
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 640px) {
+    .section { padding: 20px; border-radius: 0 10px 10px 10px; }
+    .jadwal-row { grid-template-columns: 1fr; gap: 4px; }
+    .jadwal-row .guru { font-size: 12px; }
+    .tugas-form { grid-template-columns: 1fr; }
+    .keypad { grid-template-columns: repeat(3, 64px); }
+    .key { width: 64px; height: 56px; }
+    .arduino-board { padding: 30px 20px; }
+    .usb-port, .power-port { display: none; }
+    .arduino-pin { min-width: 60px; padding: 4px 2px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- PCB traces background -->
+<!-- Awan-awan langit -->
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+<div class="cloud c3"></div>
+
+<!-- ============ LOCK SCREEN ============ -->
+<div id="lock-screen">
+  <div class="lock-half left"></div>
+  <div class="lock-half right"></div>
+  <div class="lock-panel" id="lock-panel">
+    <div class="lock-badge">
+      <span class="led blink on-amber" id="lock-led"></span>
+      <span>SISTEM KEAMANAN KELAS · AKTIF</span>
+    </div>
+    <h1>1 ED Elektronika</h1>
+    <p class="sub">Masukkan PIN 4 digit untuk membuka panel kelas</p>
+    <div class="pin-display" id="pin-display">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <div class="pin-status" id="pin-status">MENUNGGU INPUT</div>
+    <div class="keypad" id="keypad">
+      <button class="key" data-key="1">1</button>
+      <button class="key" data-key="2">2</button>
+      <button class="key" data-key="3">3</button>
+      <button class="key" data-key="4">4</button>
+      <button class="key" data-key="5">5</button>
+      <button class="key" data-key="6">6</button>
+      <button class="key" data-key="7">7</button>
+      <button class="key" data-key="8">8</button>
+      <button class="key" data-key="9">9</button>
+      <button class="key fn" data-key="clear">C</button>
+      <button class="key" data-key="0">0</button>
+      <button class="key fn" data-key="back">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-chip">1E</div>
+      <div>
+        <div class="brand-name">Kelas 1 ED Elektronika</div>
+        <div class="brand-meta">PANEL KELAS · REV 2.0</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <div class="clock-box">
+        <span class="led on-green blink"></span>
+        <div>
+          <div class="clock-time" id="clock-time">--:--:--</div>
+          <div class="clock-date" id="clock-date">—</div>
+        </div>
+      </div>
+      <button class="lock-btn" id="lock-btn">KUNCI</button>
+    </div>
+  </header>
+
+  <nav class="nav" id="nav">
+    <button class="nav-tab active" data-section="beranda">Beranda</button>
+    <button class="nav-tab" data-section="jadwal">Jadwal</button>
+    <button class="nav-tab" data-section="piket">Jadwal Piket</button>
+    <button class="nav-tab" data-section="mapel">Daftar Mapel</button>
+    <button class="nav-tab" data-section="galeri">Galeri Foto</button>
+    <button class="nav-tab" data-section="tugas">Tugas</button>
+    <button class="nav-tab" data-section="absen">Urutan Absen</button>
+    <button class="nav-tab" data-section="kas">Kas Kelas</button>
+    <button class="nav-tab" data-section="pengumuman">Pengumuman</button>
+    <button class="nav-tab" data-section="struktur">Struktur Kelas</button>
+  </nav>
+
+  <!-- BERANDA: ARDUINO BOARD -->
+  <section class="section active" id="sec-beranda">
+    <div class="hero">
+      <div class="arduino-board">
+        <div class="board-led" title="LED_BUILTIN"></div>
+        <div class="usb-port" title="USB"></div>
+        <div class="power-port" title="DC Power"></div>
+
+        <!-- Pin baris atas: Digital -->
+        <div class="pin-col top">
+          <button class="arduino-pin" data-goto="galeri">
+            <span class="pin-hole">📸</span>
+            <span class="pin-label">GALERI</span>
+            <span class="pin-name">D13 · PWM</span>
+          </button>
+          <button class="arduino-pin" data-goto="absen">
+            <span class="pin-hole">🧑‍🎓</span>
+            <span class="pin-label">ABSEN</span>
+            <span class="pin-name">D12</span>
+          </button>
+          <button class="arduino-pin" data-goto="jadwal">
+            <span class="pin-hole">🗓️</span>
+            <span class="pin-label">JADWAL</span>
+            <span class="pin-name">D11 · PWM</span>
+          </button>
+          <button class="arduino-pin" data-goto="tugas">
+            <span class="pin-hole">📐</span>
+            <span class="pin-label">TUGAS</span>
+            <span class="pin-name">D10 · PWM</span>
+          </button>
+          <button class="arduino-pin" data-goto="kas">
+            <span class="pin-hole">💰</span>
+            <span class="pin-label">KAS</span>
+            <span class="pin-name">D9 · PWM</span>
+          </button>
+        </div>
+
+        <!-- Bagian tengah board -->
+        <div class="board-center">
+          <div class="board-label">PANEL KELAS · REV 2.0</div>
+          <div class="board-title">1 ED ELEKTRONIKA</div>
+          <div class="chip"></div>
+          <div class="board-sub">Satu Kelas, Satu Frekuensi — klik pin untuk membuka fitur</div>
+        </div>
+
+        <!-- Pin baris bawah: Analog + Power -->
+        <div class="pin-col bottom">
+          <button class="arduino-pin" data-goto="piket">
+            <span class="pin-hole">🧹</span>
+            <span class="pin-label">PIKET</span>
+            <span class="pin-name">A0</span>
+          </button>
+          <button class="arduino-pin" data-goto="mapel">
+            <span class="pin-hole">📚</span>
+            <span class="pin-label">MAPEL</span>
+            <span class="pin-name">A1</span>
+          </button>
+          <button class="arduino-pin" data-goto="pengumuman">
+            <span class="pin-hole">📢</span>
+            <span class="pin-label">INFO</span>
+            <span class="pin-name">A2</span>
+          </button>
+          <button class="arduino-pin" data-goto="struktur">
+            <span class="pin-hole">👥</span>
+            <span class="pin-label">STRUKTUR</span>
+            <span class="pin-name">A3</span>
+          </button>
+        </div>
+
+        <div class="board-hint">⚡ SETIAP PIN PUNYA FUNGSI · HOVER UNTUK MENYALAKAN</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JADWAL -->
+  <section class="section" id="sec-jadwal">
+    <h2 class="section-title">Jadwal Pelajaran</h2>
+    <p class="section-desc">Titik amber menandai hari ini. Klik nama hari untuk melihat jadwalnya.</p>
+    <div class="day-tabs" id="day-tabs"></div>
+    <div class="jadwal-list" id="jadwal-list"></div>
+  </section>
+
+  <!-- PIKET -->
+  <section class="section" id="sec-piket">
+    <h2 class="section-title">Jadwal Piket</h2>
+    <p class="section-desc">Pembagian piket kelas per hari. Kartu hari ini otomatis menyala. Tambahkan nama lewat form di bawah.</p>
+    <div class="inline-form">
+      <div class="form-title">+ TAMBAH ANGGOTA PIKET</div>
+      <div class="form-row">
+        <select id="piket-hari">
+          <option>Senin</option>
+          <option>Selasa</option>
+          <option>Rabu</option>
+          <option>Kamis</option>
+          <option>Jumat</option>
+        </select>
+        <input type="text" id="piket-nama" placeholder="Nama anggota" maxlength="40">
+        <button class="upload-btn" id="piket-add" style="flex:0 0 auto;">Simpan</button>
+      </div>
+    </div>
+    <div class="piket-grid" id="piket-grid"></div>
+  </section>
+
+  <!-- MAPEL -->
+  <section class="section" id="sec-mapel">
+    <h2 class="section-title">Daftar Mata Pelajaran</h2>
+    <p class="section-desc">Semua mapel semester ini. Label amber berarti mapel produktif kejuruan elektronika.</p>
+    <div class="inline-form">
+      <div class="form-title">+ TAMBAH MAPEL</div>
+      <div class="form-row">
+        <input type="text" id="mapel-nama" placeholder="Nama mapel" maxlength="50">
+        <input type="text" id="mapel-guru" placeholder="Nama guru" maxlength="40">
+        <input type="text" id="mapel-icon" placeholder="Ikon (emoji)" maxlength="4" style="flex:0 1 120px;">
+      </div>
+      <div class="form-row">
+        <label class="check-label">
+          <input type="checkbox" id="mapel-produktif"> Mapel produktif kejuruan
+        </label>
+        <button class="upload-btn" id="mapel-add" style="flex:0 0 auto;">Simpan</button>
+      </div>
+    </div>
+    <div class="mapel-grid" id="mapel-grid"></div>
+  </section>
+
+  <!-- GALERI -->
+  <section class="section" id="sec-galeri">
+    <h2 class="section-title">Galeri Foto</h2>
+    <p class="section-desc">Dokumentasi kegiatan 1 ED. Foto yang diupload tersimpan di perangkat ini. Klik foto untuk memperbesar.</p>
+    <div class="galeri-toolbar">
+      <span class="brand-meta" id="foto-count">0 FOTO TERSIMPAN</span>
+      <button class="upload-btn" id="upload-btn">+ Tambah Foto</button>
+      <input type="file" id="file-input" accept="image/*" multiple hidden>
+    </div>
+    <div class="galeri-grid" id="galeri-grid"></div>
+  </section>
+
+  <!-- TUGAS -->
+  <section class="section" id="sec-tugas">
+    <h2 class="section-title">Daftar Tugas</h2>
+    <p class="section-desc">Tugas yang dicatat di sini tersimpan otomatis dan tersinkron ke semua perangkat.</p>
+    <div class="tugas-form">
+      <input type="text" id="tugas-mapel" placeholder="Mata pelajaran" maxlength="40">
+      <input type="date" id="tugas-deadline">
+      <button class="upload-btn" id="tugas-add">Simpan</button>
+    </div>
+    <div id="tugas-list"></div>
+  </section>
+
+  <!-- ABSEN -->
+  <section class="section" id="sec-absen">
+    <h2 class="section-title">Urutan Absen</h2>
+    <p class="section-desc">Daftar absen kelas 1 ED. Tambahkan nama siswa — nomor absen otomatis sesuai urutan.</p>
+    <div class="inline-form">
+      <div class="form-title">+ TAMBAH SISWA</div>
+      <div class="form-row">
+        <input type="text" id="absen-nama" placeholder="Nama siswa" maxlength="50">
+        <button class="upload-btn" id="absen-add" style="flex:0 0 auto;">Simpan</button>
+      </div>
+    </div>
+    <div id="absen-list"></div>
+  </section>
+
+  <!-- KAS -->
+  <section class="section" id="sec-kas">
+    <h2 class="section-title">Kas Kelas</h2>
+    <p class="section-desc">Catatan pemasukan dan pengeluaran kas 1 ED. Semua transaksi tercatat transparan untuk semua anggota.</p>
+    <div class="kas-summary">
+      <div class="kas-stat saldo">
+        <div class="k-label">SALDO</div>
+        <div class="k-value" id="kas-saldo">Rp0</div>
+      </div>
+      <div class="kas-stat masuk">
+        <div class="k-label">TOTAL MASUK</div>
+        <div class="k-value" id="kas-masuk">Rp0</div>
+      </div>
+      <div class="kas-stat keluar">
+        <div class="k-label">TOTAL KELUAR</div>
+        <div class="k-value" id="kas-keluar">Rp0</div>
+      </div>
+    </div>
+    <div class="inline-form">
+      <div class="form-title">+ CATAT TRANSAKSI</div>
+      <div class="form-row">
+        <select id="kas-jenis" style="flex:0 1 auto;">
+          <option value="in">Pemasukan</option>
+          <option value="out">Pengeluaran</option>
+        </select>
+        <input type="number" id="kas-nominal" placeholder="Nominal (Rp)" min="0">
+        <input type="text" id="kas-ket" placeholder="Keterangan (mis. Iuran mingguan)" maxlength="60">
+        <button class="upload-btn" id="kas-add" style="flex:0 0 auto;">Simpan</button>
+      </div>
+    </div>
+    <div id="kas-list"></div>
+  </section>
+
+  <!-- PENGUMUMAN -->
+  <section class="section" id="sec-pengumuman">
+    <h2 class="section-title">Pengumuman</h2>
+    <p class="section-desc">Informasi resmi dari wali kelas dan pengurus. Garis merah berarti penting.</p>
+    <div class="inline-form">
+      <div class="form-title">+ TAMBAH PENGUMUMAN</div>
+      <div class="form-row">
+        <input type="text" id="info-judul" placeholder="Judul pengumuman" maxlength="80">
+        <label class="check-label" style="flex:0 0 auto;">
+          <input type="checkbox" id="info-penting"> Penting
+        </label>
+      </div>
+      <div class="form-row">
+        <textarea id="info-isi" placeholder="Isi pengumuman..." maxlength="500"></textarea>
+      </div>
+      <div class="form-row">
+        <button class="upload-btn" id="info-add" style="flex:0 0 auto;">Terbitkan</button>
+      </div>
+    </div>
+    <div id="pengumuman-list"></div>
+  </section>
+
+  <!-- STRUKTUR -->
+  <section class="section" id="sec-struktur">
+    <h2 class="section-title">Struktur Kelas</h2>
+    <p class="section-desc">Pengurus kelas 1 ED Elektronika periode tahun ajaran ini.</p>
+    <div class="inline-form">
+      <div class="form-title">+ TAMBAH PENGURUS</div>
+      <div class="form-row">
+        <input type="text" id="pengurus-role" placeholder="Jabatan (mis. KETUA KELAS)" maxlength="30">
+        <input type="text" id="pengurus-name" placeholder="Nama lengkap" maxlength="40">
+        <button class="upload-btn" id="pengurus-add" style="flex:0 0 auto;">Simpan</button>
+      </div>
+    </div>
+    <div class="pengurus-grid" id="pengurus-grid"></div>
+  </section>
+
+  <footer class="footer">
+    <span>1 ED ELEKTRONIKA · PANEL KELAS</span>
+    <span>DIBANGUN DENGAN SOLDER & KOPI</span>
+  </footer>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <img id="lb-img" alt="">
+  <div class="lb-cap" id="lb-cap"></div>
+</div>
+
+<script type="module">
+/* ================= FIREBASE ================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDselgCPhYcOIFfY9L2zxOOh5ujENMh1Ug",
+  authDomain: "edelektronika26.firebaseapp.com",
+  databaseURL: "https://edelektronika26-default-rtdb.firebaseio.com",
+  projectId: "edelektronika26",
+  appId: "1:22358862657:web:430e46c5e7ddd241664fc0"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+// Helper: tulis data ke Firebase (dengan fallback localStorage kalau offline/gagal)
+function dbSet(path, value, localKey) {
+  set(ref(db, path), value).catch(err => {
+    console.warn('Firebase gagal, simpan lokal:', err);
+  });
+  localStorage.setItem(localKey, JSON.stringify(value));
+}
+
+// Helper: dengarkan perubahan data realtime
+function dbListen(path, localKey, callback) {
+  onValue(ref(db, path), (snapshot) => {
+    const val = snapshot.val();
+    if (val !== null) {
+      localStorage.setItem(localKey, JSON.stringify(val));
+      callback(val);
+    }
+  }, (err) => {
+    console.warn('Firebase read gagal, pakai cache lokal:', err);
+  });
+}
+
+/* ================= DATA ================= */
+const PIN_BENAR = "2411";
+
+const JADWAL = {
+  "Senin": [
+    { waktu: "07.00–07.45", mapel: "Upacara Bendera", guru: "Semua warga sekolah" },
+    { waktu: "07.45–09.15", mapel: "Pendidikan Agama", guru: "Ibu Ratna Dewi" },
+    { istirahat: true, waktu: "09.15–09.45" },
+    { waktu: "09.45–11.15", mapel: "PPKn", guru: "Pak Dedi Kurnia" },
+    { istirahat: true, waktu: "11.15–12.00" },
+    { waktu: "12.00–13.30", mapel: "Bahasa Indonesia", guru: "Ibu Sari Wulandari" }
+  ],
+  "Selasa": [
+    { waktu: "07.00–08.30", mapel: "Matematika", guru: "Pak Bambang Riyanto" },
+    { waktu: "08.30–10.00", mapel: "Dasar Program Keahlian (Elektronika)", guru: "Pak Ahmad Suryana" },
+    { istirahat: true, waktu: "10.00–10.30" },
+    { waktu: "10.30–12.00", mapel: "Bahasa Inggris", guru: "Miss Linda Puspita" }
+  ],
+  "Rabu": [
+    { waktu: "07.00–08.30", mapel: "Informatika", guru: "Pak Eko Prasetyo" },
+    { waktu: "08.30–10.00", mapel: "Gambar Teknik Elektronika", guru: "Pak Ahmad Suryana" },
+    { istirahat: true, waktu: "10.00–10.30" },
+    { waktu: "10.30–12.00", mapel: "PJOK", guru: "Pak Yoga Saputra" }
+  ],
+  "Kamis": [
+    { waktu: "07.00–08.30", mapel: "Dasar Program Keahlian (Elektronika)", guru: "Pak Ahmad Suryana" },
+    { istirahat: true, waktu: "08.30–09.00" },
+    { waktu: "09.00–10.30", mapel: "Sejarah Indonesia", guru: "Ibu Mega Lestari" },
+    { istirahat: true, waktu: "10.30–11.00" },
+    { waktu: "11.00–12.30", mapel: "Bahasa Indonesia", guru: "Ibu Sari Wulandari" }
+  ],
+  "Jumat": [
+    { waktu: "07.00–07.30", mapel: "Pembiasaan / Literasi", guru: "Wali kelas" },
+    { waktu: "07.30–09.00", mapel: "IPAS", guru: "Ibu Fitri Handayani" },
+    { istirahat: true, waktu: "09.00–09.30" },
+    { waktu: "09.30–11.00", mapel: "Seni Budaya", guru: "Pak Rudi Hartono" }
+  ]
+};
+
+const PIKET_DEFAULT = {
+  "Senin": [], "Selasa": [], "Rabu": [], "Kamis": [], "Jumat": []
+};
+
+// Data dinamis — sync realtime via Firebase, cache lokal sebagai fallback
+let dataPiket = JSON.parse(localStorage.getItem('ed_piket') || 'null') || PIKET_DEFAULT;
+let dataMapel = JSON.parse(localStorage.getItem('ed_mapel') || '[]');
+let dataPengumuman = JSON.parse(localStorage.getItem('ed_pengumuman') || '[]');
+let dataPengurus = JSON.parse(localStorage.getItem('ed_pengurus') || '[]');
+let dataKas = JSON.parse(localStorage.getItem('ed_kas') || '[]');
+let dataAbsen = JSON.parse(localStorage.getItem('ed_absen') || '[]');
+
+function savePiket() { dbSet('piket', dataPiket, 'ed_piket'); }
+function saveMapel() { dbSet('mapel', dataMapel, 'ed_mapel'); }
+function savePengumuman() { dbSet('pengumuman', dataPengumuman, 'ed_pengumuman'); }
+function savePengurus() { dbSet('pengurus', dataPengurus, 'ed_pengurus'); }
+function saveKas() { dbSet('kas', dataKas, 'ed_kas'); }
+function saveAbsen() { dbSet('absen', dataAbsen, 'ed_absen'); }
+
+// Listener realtime: kalau ada yang ubah data di perangkat lain, langsung update di sini
+function initSync() {
+  dbListen('piket', 'ed_piket', (val) => {
+    dataPiket = Object.assign({}, PIKET_DEFAULT, val);
+    renderPiket();
+  });
+  dbListen('mapel', 'ed_mapel', (val) => {
+    dataMapel = Array.isArray(val) ? val : Object.values(val);
+    renderMapel();
+  });
+  dbListen('pengumuman', 'ed_pengumuman', (val) => {
+    dataPengumuman = Array.isArray(val) ? val : Object.values(val);
+    renderPengumuman();
+  });
+  dbListen('pengurus', 'ed_pengurus', (val) => {
+    dataPengurus = Array.isArray(val) ? val : Object.values(val);
+    renderPengurus();
+  });
+  dbListen('tugas', 'ed_tugas', (val) => {
+    tugas = Array.isArray(val) ? val : Object.values(val);
+    renderTugas();
+  });
+  dbListen('kas', 'ed_kas', (val) => {
+    dataKas = Array.isArray(val) ? val : Object.values(val);
+    renderKas();
+  });
+  dbListen('absen', 'ed_absen', (val) => {
+    dataAbsen = Array.isArray(val) ? val : Object.values(val);
+    renderAbsen();
+  });
+}
+
+/* ================= LOCK / PIN ================= */
+const lockScreen = document.getElementById('lock-screen');
+const lockPanel = document.getElementById('lock-panel');
+const app = document.getElementById('app');
+const pinDots = document.querySelectorAll('.pin-dot');
+const pinStatus = document.getElementById('pin-status');
+const lockLed = document.getElementById('lock-led');
+let pinInput = "";
+
+function renderPin() {
+  pinDots.forEach((d, i) => d.classList.toggle('filled', i < pinInput.length));
+}
+
+function setStatus(text, cls) {
+  pinStatus.textContent = text;
+  pinStatus.className = 'pin-status' + (cls ? ' ' + cls : '');
+}
+
+function pressKey(k) {
+  if (k === 'clear') { pinInput = ""; renderPin(); setStatus('MENUNGGU INPUT'); return; }
+  if (k === 'back') { pinInput = pinInput.slice(0, -1); renderPin(); return; }
+  if (pinInput.length >= 4) return;
+  pinInput += k;
+  renderPin();
+  if (pinInput.length === 4) setTimeout(checkPin, 200);
+}
+
+function checkPin() {
+  if (pinInput === PIN_BENAR) {
+    setStatus('AKSES DITERIMA · MEMBUKA PANEL', 'ok');
+    lockLed.classList.remove('on-amber');
+    lockLed.classList.add('on-green');
+    document.body.classList.add('powered');
+    setTimeout(() => {
+      lockScreen.classList.add('open');
+      app.classList.add('visible');
+      sessionStorage.setItem('ed_unlocked', '1');
+    }, 450);
+    setTimeout(() => lockScreen.style.display = 'none', 1500);
+  } else {
+    setStatus('PIN SALAH · COBA LAGI', 'error');
+    lockPanel.classList.add('shake');
+    lockLed.classList.add('on-red');
+    setTimeout(() => {
+      lockPanel.classList.remove('shake');
+      lockLed.classList.remove('on-red');
+      pinInput = "";
+      renderPin();
+      setStatus('MENUNGGU INPUT');
+    }, 700);
+  }
+}
+
+document.getElementById('keypad').addEventListener('click', (e) => {
+  const btn = e.target.closest('.key');
+  if (btn) pressKey(btn.dataset.key);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (lockScreen.style.display === 'none') return;
+  if (/^[0-9]$/.test(e.key)) pressKey(e.key);
+  if (e.key === 'Backspace') pressKey('back');
+  if (e.key === 'Escape') pressKey('clear');
+});
+
+document.getElementById('lock-btn').addEventListener('click', () => {
+  sessionStorage.removeItem('ed_unlocked');
+  pinInput = "";
+  renderPin();
+  setStatus('MENUNGGU INPUT');
+  lockLed.classList.remove('on-green');
+  lockLed.classList.add('on-amber');
+  lockScreen.style.display = 'flex';
+  requestAnimationFrame(() => lockScreen.classList.remove('open'));
+  app.classList.remove('visible');
+  document.body.classList.remove('powered');
+});
+
+// Sudah unlock sebelumnya di sesi ini?
+if (sessionStorage.getItem('ed_unlocked') === '1') {
+  lockScreen.style.display = 'none';
+  app.classList.add('visible');
+  document.body.classList.add('powered');
+}
+
+/* ================= NAV TABS ================= */
+const navTabs = document.querySelectorAll('.nav-tab');
+const sections = document.querySelectorAll('.section');
+
+function gotoSection(name) {
+  navTabs.forEach(t => t.classList.toggle('active', t.dataset.section === name));
+  sections.forEach(s => s.classList.toggle('active', s.id === 'sec-' + name));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+navTabs.forEach(t => t.addEventListener('click', () => gotoSection(t.dataset.section)));
+document.querySelectorAll('[data-goto]').forEach(p =>
+  p.addEventListener('click', () => gotoSection(p.dataset.goto))
+);
+
+/* ================= CLOCK ================= */
+const HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const BULAN = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+function tickClock() {
+  const n = new Date();
+  const p = (x) => String(x).padStart(2, '0');
+  document.getElementById('clock-time').textContent =
+    `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  document.getElementById('clock-date').textContent =
+    `${HARI[n.getDay()]}, ${n.getDate()} ${BULAN[n.getMonth()]} ${n.getFullYear()}`;
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+/* ================= JADWAL ================= */
+const dayTabs = document.getElementById('day-tabs');
+const jadwalList = document.getElementById('jadwal-list');
+const hariIni = HARI[new Date().getDay()];
+const hariKerja = Object.keys(JADWAL);
+const hariDefault = hariKerja.includes(hariIni) ? hariIni : "Senin";
+
+hariKerja.forEach(h => {
+  const b = document.createElement('button');
+  b.className = 'day-tab' + (h === hariDefault ? ' active' : '') + (h === hariIni ? ' today-mark' : '');
+  b.textContent = h;
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.day-tab').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderJadwal(h);
+  });
+  dayTabs.appendChild(b);
+});
+
+function renderJadwal(hari) {
+  jadwalList.innerHTML = '';
+  JADWAL[hari].forEach(j => {
+    const row = document.createElement('div');
+    row.className = 'jadwal-row' + (j.istirahat ? ' istirahat' : '');
+    row.innerHTML = j.istirahat
+      ? `<span class="waktu">${j.waktu}</span><span class="mapel">— ISTIRAHAT —</span><span></span>`
+      : `<span class="waktu">${j.waktu}</span><span class="mapel">${j.mapel}</span><span class="guru">${j.guru}</span>`;
+    jadwalList.appendChild(row);
+  });
+}
+renderJadwal(hariDefault);
+
+/* ================= GALERI ================= */
+const galeriGrid = document.getElementById('galeri-grid');
+const fotoCount = document.getElementById('foto-count');
+const fileInput = document.getElementById('file-input');
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lb-img');
+const lbCap = document.getElementById('lb-cap');
+
+let fotoUser = JSON.parse(localStorage.getItem('ed_photos') || '[]');
+
+function saveFoto() {
+  localStorage.setItem('ed_photos', JSON.stringify(fotoUser));
+  // tulis seluruh daftar (key numerik); foto sudah dikompres kecil
+  set(ref(db, 'photos'), fotoUser).catch(err => {
+    alert('Upload ke cloud gagal: ' + err.message + '\nFoto hanya tersimpan lokal.');
+  });
+}
+
+function renderGaleri() {
+  galeriGrid.innerHTML = '';
+  fotoCount.textContent = `${fotoUser.length} FOTO · TERSIMPAN DI CLOUD`;
+
+  if (fotoUser.length === 0) {
+    galeriGrid.innerHTML = '<div class="empty-note" style="grid-column:1/-1;">BELUM ADA FOTO · UPLOAD LEWAT TOMBOL DI ATAS</div>';
+    return;
+  }
+
+  fotoUser.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = 'foto-card';
+    card.innerHTML = `
+      <button class="foto-del" title="Hapus foto">×</button>
+      <img src="${f.src}" alt="" loading="lazy">
+      <div class="foto-caption">${f.cap}</div>`;
+    card.querySelector('.foto-del').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm('Hapus foto ini untuk semua orang?')) {
+        fotoUser.splice(i, 1);
+        saveFoto();
+        renderGaleri();
+      }
+    });
+    card.addEventListener('click', () => openLightbox(f.src, f.cap));
+    galeriGrid.appendChild(card);
+  });
+}
+
+function openLightbox(src, cap) {
+  lbImg.src = src;
+  lbCap.textContent = cap;
+  lightbox.classList.add('show');
+}
+lightbox.addEventListener('click', () => lightbox.classList.remove('show'));
+
+document.getElementById('upload-btn').addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  [...fileInput.files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // kompres agresif supaya muat di Firebase (limit ~1MB per node)
+        const canvas = document.createElement('canvas');
+        const max = 640;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const src = canvas.toDataURL('image/jpeg', 0.55);
+        if (src.length > 800000) {
+          alert('Foto terlalu besar bahkan setelah dikompres. Coba foto lain.');
+          return;
+        }
+        const cap = prompt('Keterangan foto:', file.name.replace(/\.[^.]+$/, '')) || 'Dokumentasi kelas';
+        fotoUser.unshift({ src, cap });
+        saveFoto();
+        renderGaleri();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  fileInput.value = '';
+});
+
+renderGaleri();
+
+/* ================= TUGAS ================= */
+let tugas = JSON.parse(localStorage.getItem('ed_tugas') || '[]');
+const tugasList = document.getElementById('tugas-list');
+
+function saveTugas() { dbSet('tugas', tugas, 'ed_tugas'); }
+
+function renderTugas() {
+  tugasList.innerHTML = '';
+  if (tugas.length === 0) {
+    tugasList.innerHTML = '<div class="empty-note">BELUM ADA TUGAS TERCATAT</div>';
+    return;
+  }
+  tugas.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'tugas-item' + (t.done ? ' done' : '');
+    const tgl = t.deadline ? new Date(t.deadline + 'T00:00:00') : null;
+    const tglStr = tgl ? `${HARI[tgl.getDay()]}, ${tgl.getDate()} ${BULAN[tgl.getMonth()]} ${tgl.getFullYear()}` : 'Tanpa deadline';
+    item.innerHTML = `
+      <button class="tugas-check ${t.done ? 'done' : ''}">${t.done ? '✓' : ''}</button>
+      <div class="tugas-body">
+        <div class="t-mapel">${t.mapel}</div>
+        <div class="t-deadline">DEADLINE · ${tglStr}</div>
+      </div>
+      <button class="tugas-del" title="Hapus">×</button>`;
+    item.querySelector('.tugas-check').addEventListener('click', () => {
+      tugas[i].done = !tugas[i].done;
+      saveTugas(); renderTugas();
+    });
+    item.querySelector('.tugas-del').addEventListener('click', () => {
+      tugas.splice(i, 1);
+      saveTugas(); renderTugas();
+    });
+    tugasList.appendChild(item);
+  });
+}
+
+document.getElementById('tugas-add').addEventListener('click', () => {
+  const mapel = document.getElementById('tugas-mapel').value.trim();
+  const deadline = document.getElementById('tugas-deadline').value;
+  if (!mapel) { alert('Isi mata pelajarannya dulu.'); return; }
+  tugas.unshift({ mapel, deadline, done: false });
+  document.getElementById('tugas-mapel').value = '';
+  document.getElementById('tugas-deadline').value = '';
+  saveTugas(); renderTugas();
+});
+
+renderTugas();
+
+/* ================= PENGUMUMAN ================= */
+const pengumumanList = document.getElementById('pengumuman-list');
+
+function renderPengumuman() {
+  pengumumanList.innerHTML = '';
+  if (dataPengumuman.length === 0) {
+    pengumumanList.innerHTML = '<div class="empty-note">BELUM ADA PENGUMUMAN · TERBITKAN LEWAT FORM DI ATAS</div>';
+    return;
+  }
+  dataPengumuman.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'info-item' + (p.penting ? ' penting' : '');
+    el.style.position = 'relative';
+    el.innerHTML = `
+      <button class="card-del" data-i="${i}" title="Hapus" style="opacity:0;">×</button>
+      <div class="info-date">${p.tgl}${p.penting ? ' · PENTING' : ''}</div>
+      <h3>${p.judul}</h3>
+      <p>${p.isi}</p>`;
+    pengumumanList.appendChild(el);
+  });
+}
+
+document.getElementById('info-add').addEventListener('click', () => {
+  const judul = document.getElementById('info-judul').value.trim();
+  const isi = document.getElementById('info-isi').value.trim();
+  const penting = document.getElementById('info-penting').checked;
+  if (!judul || !isi) { alert('Judul dan isi pengumuman harus diisi.'); return; }
+  const n = new Date();
+  const tgl = `${n.getDate()} ${BULAN[n.getMonth()].toUpperCase()} ${n.getFullYear()}`;
+  dataPengumuman.unshift({ tgl, judul, isi, penting });
+  document.getElementById('info-judul').value = '';
+  document.getElementById('info-isi').value = '';
+  document.getElementById('info-penting').checked = false;
+  savePengumuman();
+  renderPengumuman();
+});
+
+pengumumanList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.card-del');
+  if (!btn) return;
+  if (!confirm('Hapus pengumuman ini?')) return;
+  dataPengumuman.splice(parseInt(btn.dataset.i), 1);
+  savePengumuman();
+  renderPengumuman();
+});
+
+renderPengumuman();
+
+/* ================= PIKET ================= */
+const piketGrid = document.getElementById('piket-grid');
+
+function renderPiket() {
+  piketGrid.innerHTML = '';
+  ["Senin","Selasa","Rabu","Kamis","Jumat"].forEach(hari => {
+    const anggota = dataPiket[hari] || [];
+    const card = document.createElement('div');
+    card.className = 'piket-card' + (hari === hariIni ? ' today' : '');
+    card.innerHTML = `
+      <div class="p-day">${hari.toUpperCase()}</div>
+      <ul>${anggota.length
+        ? anggota.map((n, i) =>
+            `<li><span>${n}</span><button class="mini-del" data-hari="${hari}" data-i="${i}" title="Hapus">×</button></li>`
+          ).join('')
+        : '<li style="color:var(--silk-dim);font-size:13px;">Belum ada anggota</li>'
+      }</ul>`;
+    piketGrid.appendChild(card);
+  });
+}
+
+document.getElementById('piket-add').addEventListener('click', () => {
+  const hari = document.getElementById('piket-hari').value;
+  const nama = document.getElementById('piket-nama').value.trim();
+  if (!nama) { alert('Isi nama anggotanya dulu.'); return; }
+  if (!dataPiket[hari]) dataPiket[hari] = [];
+  dataPiket[hari].push(nama);
+  document.getElementById('piket-nama').value = '';
+  savePiket();
+  renderPiket();
+});
+
+piketGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mini-del');
+  if (!btn) return;
+  dataPiket[btn.dataset.hari].splice(parseInt(btn.dataset.i), 1);
+  savePiket();
+  renderPiket();
+});
+
+renderPiket();
+
+/* ================= MAPEL ================= */
+const mapelGrid = document.getElementById('mapel-grid');
+
+function renderMapel() {
+  mapelGrid.innerHTML = '';
+  if (dataMapel.length === 0) {
+    mapelGrid.innerHTML = '<div class="empty-note" style="grid-column:1/-1;">BELUM ADA MAPEL · TAMBAHKAN LEWAT FORM DI ATAS</div>';
+    return;
+  }
+  dataMapel.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'mapel-card' + (m.produktif ? ' produktif' : '');
+    card.innerHTML = `
+      <button class="card-del" data-i="${i}" title="Hapus">×</button>
+      <div class="mapel-icon">${m.icon || '📚'}</div>
+      <div class="mapel-info">
+        <div class="m-name">${m.nama}</div>
+        <div class="m-guru">${m.guru || '—'}</div>
+        <div class="m-type">${m.produktif ? 'PRODUKTIF KEJURUAN' : 'UMUM'}</div>
+      </div>`;
+    mapelGrid.appendChild(card);
+  });
+}
+
+document.getElementById('mapel-add').addEventListener('click', () => {
+  const nama = document.getElementById('mapel-nama').value.trim();
+  const guru = document.getElementById('mapel-guru').value.trim();
+  const icon = document.getElementById('mapel-icon').value.trim() || '📚';
+  const produktif = document.getElementById('mapel-produktif').checked;
+  if (!nama) { alert('Isi nama mapelnya dulu.'); return; }
+  dataMapel.push({ nama, guru, icon, produktif });
+  document.getElementById('mapel-nama').value = '';
+  document.getElementById('mapel-guru').value = '';
+  document.getElementById('mapel-icon').value = '';
+  document.getElementById('mapel-produktif').checked = false;
+  saveMapel();
+  renderMapel();
+});
+
+mapelGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.card-del');
+  if (!btn) return;
+  dataMapel.splice(parseInt(btn.dataset.i), 1);
+  saveMapel();
+  renderMapel();
+});
+
+renderMapel();
+
+/* ================= STRUKTUR ================= */
+const pengurusGrid = document.getElementById('pengurus-grid');
+
+function renderPengurus() {
+  pengurusGrid.innerHTML = '';
+  if (dataPengurus.length === 0) {
+    pengurusGrid.innerHTML = '<div class="empty-note" style="grid-column:1/-1;">BELUM ADA PENGURUS · TAMBAHKAN LEWAT FORM DI ATAS</div>';
+    return;
+  }
+  dataPengurus.forEach((p, i) => {
+    const init = p.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const el = document.createElement('div');
+    el.className = 'pengurus-card';
+    el.style.position = 'relative';
+    el.innerHTML = `
+      <button class="card-del" data-i="${i}" title="Hapus" style="opacity:0;">×</button>
+      <div class="avatar">${init}</div>
+      <div>
+        <div class="role">${p.role}</div>
+        <div class="name">${p.name}</div>
+      </div>`;
+    pengurusGrid.appendChild(el);
+  });
+}
+
+document.getElementById('pengurus-add').addEventListener('click', () => {
+  const role = document.getElementById('pengurus-role').value.trim().toUpperCase();
+  const name = document.getElementById('pengurus-name').value.trim();
+  if (!role || !name) { alert('Jabatan dan nama harus diisi.'); return; }
+  dataPengurus.push({ role, name });
+  document.getElementById('pengurus-role').value = '';
+  document.getElementById('pengurus-name').value = '';
+  savePengurus();
+  renderPengurus();
+});
+
+pengurusGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.card-del');
+  if (!btn) return;
+  dataPengurus.splice(parseInt(btn.dataset.i), 1);
+  savePengurus();
+  renderPengurus();
+});
+
+renderPengurus();
+
+/* ================= KAS ================= */
+const kasList = document.getElementById('kas-list');
+
+function rupiah(n) {
+  return 'Rp' + n.toLocaleString('id-ID');
+}
+
+function renderKas() {
+  kasList.innerHTML = '';
+  let masuk = 0, keluar = 0;
+  dataKas.forEach(t => {
+    if (t.jenis === 'in') masuk += t.nominal; else keluar += t.nominal;
+  });
+  document.getElementById('kas-saldo').textContent = rupiah(masuk - keluar);
+  document.getElementById('kas-masuk').textContent = rupiah(masuk);
+  document.getElementById('kas-keluar').textContent = rupiah(keluar);
+
+  if (dataKas.length === 0) {
+    kasList.innerHTML = '<div class="empty-note">BELUM ADA TRANSAKSI · CATAT LEWAT FORM DI ATAS</div>';
+    return;
+  }
+
+  dataKas.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'kas-item';
+    el.innerHTML = `
+      <span class="kas-badge ${t.jenis}">${t.jenis === 'in' ? 'MASUK' : 'KELUAR'}</span>
+      <div>
+        <div class="k-ket">${t.ket}</div>
+        <div class="k-tgl">${t.tgl}</div>
+      </div>
+      <div class="k-nominal ${t.jenis}">${t.jenis === 'in' ? '+' : '−'} ${rupiah(t.nominal)}</div>
+      <button class="mini-del" data-i="${i}" title="Hapus">×</button>`;
+    kasList.appendChild(el);
+  });
+}
+
+document.getElementById('kas-add').addEventListener('click', () => {
+  const jenis = document.getElementById('kas-jenis').value;
+  const nominal = parseInt(document.getElementById('kas-nominal').value);
+  const ket = document.getElementById('kas-ket').value.trim();
+  if (!nominal || nominal <= 0) { alert('Isi nominal yang benar.'); return; }
+  if (!ket) { alert('Isi keterangannya dulu.'); return; }
+  const n = new Date();
+  const tgl = `${HARI[n.getDay()]}, ${n.getDate()} ${BULAN[n.getMonth()]} ${n.getFullYear()}`;
+  dataKas.unshift({ jenis, nominal, ket, tgl });
+  document.getElementById('kas-nominal').value = '';
+  document.getElementById('kas-ket').value = '';
+  saveKas();
+  renderKas();
+});
+
+kasList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mini-del');
+  if (!btn) return;
+  if (!confirm('Hapus catatan transaksi ini?')) return;
+  dataKas.splice(parseInt(btn.dataset.i), 1);
+  saveKas();
+  renderKas();
+});
+
+renderKas();
+
+/* ================= ABSEN ================= */
+const absenList = document.getElementById('absen-list');
+
+function renderAbsen() {
+  absenList.innerHTML = '';
+  if (dataAbsen.length === 0) {
+    absenList.innerHTML = '<div class="empty-note">BELUM ADA SISWA · TAMBAHKAN LEWAT FORM DI ATAS</div>';
+    return;
+  }
+  dataAbsen.forEach((nama, i) => {
+    const el = document.createElement('div');
+    el.className = 'absen-item';
+    el.innerHTML = `
+      <div class="absen-no">${String(i + 1).padStart(2, '0')}</div>
+      <div class="a-nama">${nama}</div>
+      <button class="mini-del" data-i="${i}" title="Hapus">×</button>`;
+    absenList.appendChild(el);
+  });
+}
+
+document.getElementById('absen-add').addEventListener('click', () => {
+  const nama = document.getElementById('absen-nama').value.trim();
+  if (!nama) { alert('Isi nama siswanya dulu.'); return; }
+  dataAbsen.push(nama);
+  document.getElementById('absen-nama').value = '';
+  saveAbsen();
+  renderAbsen();
+});
+
+absenList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mini-del');
+  if (!btn) return;
+  if (!confirm('Hapus siswa ini dari absen?')) return;
+  dataAbsen.splice(parseInt(btn.dataset.i), 1);
+  saveAbsen();
+  renderAbsen();
+});
+
+renderAbsen();
+
+/* ================= FOTO SYNC ================= */
+dbListen('photos', 'ed_photos', (val) => {
+  fotoUser = Array.isArray(val) ? val : Object.values(val);
+  renderGaleri();
+});
+
+/* ================= START REALTIME SYNC ================= */
+initSync();
+</script>
+</body>
+</html>
